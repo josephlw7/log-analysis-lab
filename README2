@@ -1,0 +1,169 @@
+# Identify Patterns and Anomalies
+
+## Issue 1
+
+**Log Entries:**
+
+```plaintext
+2023-02-17 09:36:07 192.168.1.61 217.23.2.15 TCP 21 Allow 3629
+2023-02-17 09:36:15 192.168.1.61 141.98.10.195 TCP 21 Allow 2745
+```
+
+**Description of log entries:** Workstation initiating outbound FTP (port 21) connections to external IPs.
+
+**Reason for concern:** FTP is an insecure, legacy protocol that transmits data in cleartext and is rarely used by modern systems for outbound traffic.
+
+**Potential impact:** Possible data exfiltration or malware attempting to communicate with a remote command and control server.
+
+**Possible explanations:** Outdated software using FTP, misconfigured backup script, or unauthorized/malicious file transfers.
+
+# Issue 2
+
+**Log Entries:**
+
+```plaintext
+2023-02-17 09:39:03 192.168.1.19 40.94.31.197 TCP 1433 Allow 37419
+2023-02-17 09:39:08 192.168.1.19 40.94.25.38 TCP 1433 Allow 32780
+2023-02-17 09:39:11 192.168.1.19 40.94.28.182 TCP 1433 Allow 41935
+```
+## Issue 3
+
+**Log Entries:**
+
+```plaintext
+2023-02-17 09:35:56 172.17.99.132 205.185.216.10 UDP 443 Deny 6340
+2023-02-17 09:37:04 192.168.1.229 104.244.46.115 UDP 443 Allow 6273
+2023-02-17 09:37:08 192.168.1.229 104.244.46.115 UDP 443 Allow 6273
+2023-02-17 09:37:14 192.168.1.229 104.244.46.115 UDP 443 Allow 6273
+``` 
+
+**Description of log entries:** Multiple UDP connections over port 443, including one deny and several allows, to external IPs.
+**Reason for concern:** Port 443 is typically used for HTTPS (TCP); UDP 443 may indicate QUIC usage or protocol tunneling.
+**Potential impact:** Could mask exfiltration or C2 traffic through encrypted, firewall-evading channels.
+**Possible explanations:**  QUIC protocol via modern browsers, or malicious application abusing common ports for stealth.
+
+## Issue 4
+
+**Log Entries:**
+```plaintext
+2023-02-17 09:37:17 192.168.1.150 162.159.134.234 TCP 443 Allow 70136
+2023-02-17 09:37:27 192.168.1.150 162.159.130.233 TCP 443 Allow 72643
+``` 
+
+**Description of log entries:** Large encrypted data transfers from an internal host to Cloudflare-managed IPs over HTTPS.
+
+**Reason for concern:** The volume of data sent suggests potential exfiltration under the guise of normal HTTPS traffic.
+
+**Potential impact:** Sensitive or proprietary data may be sent to untrusted cloud services or attacker-controlled endpoints.Application using CDN for legitimate uploads, or malicious software disguising its activity as web traffic.
+**Possible explanations:** 
+
+## Issue 5
+
+**Log Entries:**
+
+```plaintext
+2023-02-17 09:38:24 192.168.1.72 111.221.29.254 TCP 443 Deny 0
+2023-02-17 09:38:30 192.168.1.72 111.221.29.254 TCP 443 Deny 0
+2023-02-17 09:38:37 192.168.1.72 111.221.29.254 TCP 443 Deny 0
+2023-02-17 09:38:43 192.168.1.72 111.221.29.254 TCP 443 Deny 0
+2023-02-17 09:38:53 192.168.1.72 111.221.29.254 TCP 443 Deny 0
+``` 
+**Description of log entries:** Repeated denied outbound HTTPS attempts from a workstation to a Microsoft-associated IP.
+**Reason for concern:** Persistent outbound attempts despite firewall blocks may indicate malware beaconing or misconfigured services
+**Potential impact:** Could represent unauthorized software attempting to establish contact with external servers.
+**Possible explanations:** Legitimate service update or telemetry being blocked, or potentially unauthorized software retrying a connection.
+
+## Issue 6
+
+**Log Entries:**
+
+```plaintext
+2023-02-17 09:34:03 192.168.1.27 45.137.80.15 TCP 41284 Deny 48
+2023-02-17 09:36:44 192.168.1.80 185.151.204.30 TCP 48127 Deny 48
+``` 
+**Description of log entries:** Denied outbound traffic to high-numbered TCP ports on external IPs from different internal hosts.
+
+**Reason for concern:** High-numbered ports are often used by malware for C2 channels or unauthorized communication.
+
+**Potential impact:** If allowed, these connections could lead to remote access, botnet participation, or data theft.
+
+**Possible explanations:** Misconfigured applications using ephemeral ports, or malware attempting outbound connections.
+
+## Issue 7
+
+**Log Entries:**
+
+```plaintext
+2023-02-17 09:34:03 192.168.1.27 45.137.80.15 TCP 41284 Deny 48
+2023-02-17 09:36:44 192.168.1.80 185.151.204.30 TCP 48127 Deny 48
+``` 
+**Description of log entries:** Denied outbound traffic to high-numbered TCP ports on external IPs from different internal hosts.
+
+**Reason for concern:** High-numbered ports are often used by malware for C2 channels or unauthorized communication.
+
+**Potential impact:** If allowed, these connections could lead to remote access, botnet participation, or data theft.
+
+**Possible explanations:** Misconfigured applications using ephemeral ports, or malware attempting outbound connections.
+
+## Issue 7
+
+**Log Entries:**
+
+```plaintext
+2023-02-17 09:37:04 192.168.1.229 239.255.255.250 UDP 443 Allow 6273
+2023-02-17 09:37:07 192.168.1.229 255.255.255.255 UDP 443 Allow 6273
+2023-02-17 09:37:10 192.168.1.229 192.168.1.255 UDP 443 Allow 6273
+``` 
+**Description of log entries:** Multicast and broadcast traffic sent over UDP port 443, originating from a single workstation.
+
+**Reason for concern:** Multicast on encrypted ports is abnormal and may be used to probe the network or evade detection.
+
+**Potential impact:** Potential lateral movement, service discovery abuse, or internal C2 mechanisms.
+
+**Possible explanations:** Misconfigured application using broadcast over QUIC, or unauthorized scanning tools.
+
+## Issue 8
+
+**Log Entries:**
+
+```plaintext
+2023-02-17 09:34:14 192.168.1.49 216.109.119.63 TCP 25 Allow 7421
+``` 
+**Description of log entries:** A single workstation connected to an external IP over SMTP port 25.
+
+**Reason for concern:** Workstations should not directly send email via port 25; this is commonly abused by spambot malware.
+
+**Potential impact:** Blacklisting of internal IPs, email reputation damage, or spam originating from internal systems.
+**Possible explanations:** Malware attempting outbound spam, or misconfigured legacy software sending mail.
+
+## Issue 9 
+
+**Log Entries:**
+
+```plaintext 2023-02-17 09:35:04 192.168.1.161 204.141.42.39 UDP 5060 Allow 5720
+``` 
+**Description of log entries:** Outbound SIP (VoIP) traffic initiated by a workstation over UDP port 5060.
+
+**Reason for concern:** SIP should typically originate from VoIP infrastructure, not end-user machines.
+
+**Potential impact:** Possibility of unauthorized VoIP signaling or use of SIP for covert data transmission.
+
+**Possible explanations:** Installed softphone or VoIP client, or malware mimicking SIP traffic to avoid detection.
+
+## Issue 1
+
+**Log Entries:**
+
+```plaintext
+2023-02-17 09:33:57 192.168.1.33 116.132.235.228 ICMP 0 Allow 98
+2023-02-17 09:35:30 192.168.1.34 35.186.224.47 ICMP 0 Allow 98
+```
+
+**Description of log entries:** Internal hosts sent ICMP echo requests (pings) to external IPs.
+
+**Reason for concern:** While pinging is common, repeated external ICMP may signal beaconing or scanning.
+
+**Potential impact:** Potential reconnaissance activity or malware verifying connectivity to an external C2 server.
+
+**Possible explanations:** Network testing, cloud service heartbeat checks, or covert signaling by malware.
+
